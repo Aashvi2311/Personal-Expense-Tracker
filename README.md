@@ -14,7 +14,6 @@ A console-based expense tracker built using C++ and OOP principles.
 - STL (vector, algorithm)
 
 ## Future Improvements
-- Budget tracking
-- File-based persistence
+- File-based persistence (for reports)
 - GUI using Qt
 
