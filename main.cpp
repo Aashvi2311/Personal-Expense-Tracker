@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <fstream>
 using namespace std;
 
 class User{
@@ -28,6 +29,24 @@ class UserManager{
     vector<User>users;
 
     public:
+    void saveUsersToFile(){
+        ofstream file("users.txt");
+        for (User u : users){
+            file<<u.getUserName()<<" "<<u.getPassword()<<endl;
+        }
+        file.close();
+        cout<<"Saved all users to file"<<endl;
+    }
+    void loadUsersFromFile(){
+        ifstream file("users.txt");
+        if(!file) return;
+        string u,p;
+        while(file>>u>>p){
+            users.push_back(User(u,p));
+        }
+        file.close();
+        cout<<"Loaded all users from file"<<endl;
+    }
     void addNewUser(){
         string username;
         string password;
@@ -89,7 +108,6 @@ class UserManager{
             }
         }
     }
-
 };
 class Transaction{
     protected:
@@ -155,10 +173,29 @@ class IncomeManager{
 
     public:
     IncomeManager(){};
+    void saveIncomeToFile(){
+        ofstream file("income.txt");
+        for (Income i: allIncome){
+            file <<i.getDay()<<" "<<i.getMonth()<<" "<<i.getYear()<<" "<<i.getAmount()<<endl;
+        }
+        file.close();
+        cout<<"Saved all income to file"<<endl;
+    }
+    void loadIncomeFromFile(){
+        ifstream file("income.txt");
+        int d,m,y;
+        double a;
+        if (!file) return;
+        while (file>>d>>m>>y>>a){
+            allIncome.push_back(Income(d,m,y,a));
+        }
+        file.close();
+        cout<<"Loaded all income from file"<<endl;
+    }
     void addIncome(){
         int day,month,year;
         double amount;
-        cout<<"Enter expense date(dd mm yy): ";
+        cout<<"Enter income date(dd mm yy): ";
         cin>>day>>month>>year;
         t.dateCheck(day,month,year);
         cout<<"Enter income amount: ";
@@ -174,7 +211,7 @@ class IncomeManager{
         }
     }
     void monthlyReportIncome(int m){
-        double totalIncome;
+        double totalIncome=0;
         for (Income i:allIncome){
             if(i.getMonth()==m){
                 cout<<"Income Date: "<<i.getDay()<<" "<<i.getMonth()<<" "<<i.getYear()<<endl;
@@ -185,7 +222,14 @@ class IncomeManager{
         cout<<"Total Income for the month: "<<totalIncome;
         cout<<endl;
     }
-    void calculateTotalIncome()
+    void calculateTotalIncome(){
+        double totalIncome=0;
+        for (Income i:allIncome){
+            totalIncome+=i.getAmount();
+        }
+        cout<<"Total Income: "<<totalIncome;
+        cout<<endl;
+    }
 };
 class Expense : public Transaction{
     protected:
@@ -210,6 +254,25 @@ class ExpenseManager{
     Transaction t;
     
     public:
+    void saveExpenseToFile(){
+        ofstream file("expenses.txt");
+        for (Expense e : expenses){
+            file<<e.getDay()<<" "<<e.getMonth()<<" "<<e.getYear()<<" "<<e.getAmount()<<" "<<e.getCategory()<<endl;
+        }
+        file.close();
+        cout<<"Saved all expenses to file"<<endl;
+    }
+    void loadExpenseFromFile(){
+        ifstream file("expenses.txt");
+        int d,m,y,c;
+        double a;
+        if (!file) return;
+        while (file>>d>>m>>y>>a>>c){
+            expenses.push_back(Expense(d,m,y,a,c));
+        }
+        file.close();
+        cout<<"Loaded all expenses from file"<<endl;
+    }
     void addExpense(){
         int day,month,year;
         double amount;
@@ -250,7 +313,7 @@ class ExpenseManager{
     }
     void viewExpenseByMonth(){
         int m;
-        double totalAmount;
+        double totalAmount=0;
         cout<<"Enter month for which you wish to view expenses: ";
         cin>>m;
         for (Expense e: expenses){
@@ -276,8 +339,11 @@ class ExpenseManager{
             }
         }
     }
-    void totalExpenseByCategory(){
+   void totalExpenseByCategory(){
         double totalByCategory[5];
+        for (int i=1;i<=5;i++){
+            totalByCategory[i]=0;
+        }
         for(Expense e:expenses){
             if(e.getCategory()==1) totalByCategory[1]+=e.getAmount();
             if(e.getCategory()==2) totalByCategory[2]+=e.getAmount();
@@ -286,16 +352,16 @@ class ExpenseManager{
             if(e.getCategory()==5) totalByCategory[5]+=e.getAmount();
         }
         sort(totalByCategory,totalByCategory+5);
-        cout<<"Total Expense by Category: ";
+        cout<<"Total Expense by Category: "<<endl;
         for(int i=1;i<=5;i++){
             cout<<"Category: ";
             printCategory(i);
-            cout<<"Total: "<<totalByCategory[i];
+            cout<<"Total: "<<totalByCategory[i]<<endl;
         }
         cout<<endl;
     }
-    void monthlyReportExpense(int m){
-        double totalAmount;
+    double monthlyReportExpense(int m){
+        double totalAmount=0;
         for (Expense e: expenses){
             if(e.getMonth()==m){
                 cout<<"Expense Date: "<<e.getDay()<<" "<<e.getMonth()<<" "<<e.getYear()<<endl;
@@ -307,6 +373,7 @@ class ExpenseManager{
         }
         cout<<"Total Expenditure: "<<totalAmount;
         cout<<endl;
+        return totalAmount;
     }
     void deleteExpense(){
         int day,month,year;
@@ -327,7 +394,7 @@ class ExpenseManager{
         //Traverse by index when deleting or editing
         for (int i=0;i<expenses.size();i++){
             if(expenses[i].getDay()==day && expenses[i].getMonth()==month && expenses[i].getYear()==year){
-                double newAmount;
+                double newAmount=0;
                 int newCategory;
                 cout<<"Enter new amount: ";
                 cin>>newAmount;
@@ -378,38 +445,104 @@ class Report{
         cout<<"---------MONTHLY REPORT----------"<<endl;
         cout<<"Month: ";
         printMonth(m);
-        cout<<"Income for the month: "<<endl;
         im.monthlyReportIncome(m);
-        cout<<"Expenses for the month: "<<endl;
         em.monthlyReportExpense(m);
         cout<<endl;
     }
     void overallReport(){
         cout<<"-------REPORT-------"<<endl;
-        cout<<"All Income: "<<endl;
         im.viewIncome();
-        cout<<"All Expenses: "<<endl;
         em.viewExpenses();
         em.totalExpenseByCategory();
         cout<<endl;
     }
 };
-// class Budget{
-//     ExpenseManager em;
-//     IncomeManager im;
+class Budget{
+    double budgetForEachMonth[13]={0}; //Set 0-idx to 0
+    double budgetForEachCategory[6]={0}; //Set 0-idx to 0
+    ExpenseManager em;
+    IncomeManager im;
+    Report r;
 
-//     void setTotalBudget
-
-//     void setBudgetByCategory
-
-//     void checkBudget
-// }
-//Budget
+    public:
+    void saveBudgetToFile(){
+        ofstream file("budget.txt");
+        for(int i=1;i<=12;i++){
+            file<<budgetForEachMonth[i]<<" ";
+        }
+        file<<endl;
+        for (int i=1;i<=5;i++){
+            file<<budgetForEachCategory[i]<<" ";
+        }
+        file.close();
+    }
+    void loadBudgetFromFile(){
+        ifstream file("budget.txt");
+        if (!file) return;
+        for(int i=1;i<=12;i++){
+            file>>budgetForEachMonth[i];
+        }
+        for (int i=1;i<=5;i++){
+            file>>budgetForEachCategory[i];
+        }
+        file.close();
+        cout<<"Loaded all budget from file"<<endl;
+    }
+    void setTotalBudget(){
+        for(int i=1;i<12;i++){
+            budgetForEachMonth[i]=0;
+        }
+        int m;
+        double budget=0;
+        cout<<"Enter month to enter budget: ";
+        cin>>m;
+        cout<<"Enter budget amount: ";
+        cin>>budget;
+        budgetForEachMonth[m] = budget;
+        cout<<"Budget set successfully for month: ";
+        r.printMonth(m);
+    }
+    void setBudgetByCategory(){
+        for(int i=1;i<5;i++){
+            budgetForEachCategory[i]=0;
+        }
+        int c;
+        double budget=0;
+        cout<<"Enter category(1-5) to enter budget: ";
+        cin>>c;
+        cout<<"Enter budget amount: ";
+        cin>>budget;
+        budgetForEachCategory[c] = budget;
+        cout<<"Budget set successfully for category: ";
+        em.printCategory(c);
+    }
+    void checkBudget(){
+        cout<<"Monthly Budget: "<<endl;
+        for(int i=1;i<=12;i++){
+            cout<<"Month: ";
+            r.printMonth(i);
+            cout<<": "<<budgetForEachMonth[i];
+            cout<<endl; 
+        }
+        cout<<"Category wise Budget: "<<endl;
+        for (int i=1;i<=5;i++){
+            cout<<"Category: ";
+            em.printCategory(i);
+            cout<<": "<<budgetForEachCategory[i];
+            cout<<endl;
+        }
+    }
+};
 int main(){
     ExpenseManager e;
     IncomeManager i;
     Report r;
     UserManager u;
+    Budget b;
+    u.loadUsersFromFile();
+    e.loadExpenseFromFile();
+    i.loadIncomeFromFile();
+    b.loadBudgetFromFile();
     cout<<"Welcome to your PERSONAL EXPENSE TRACKER"<<endl;
     int choice,ch;
     do{
@@ -420,7 +553,7 @@ int main(){
         break;
         case 2: u.userLogin();
             do{
-    cout<<"1.Add Expense \n 2.Add Income \n 3.View Expense by Month \n 4.View Expense by Category \n 5.Delete Expense \n 6.Edit Expense \n 7.View Report \n 8.Monthly Report \n 9.Check Budget \n 10.Set Total Budget \n 11.Set Budget by Category \n 12.Exit \n";
+    cout<<" 1.Add Expense \n 2.Add Income \n 3.View Expense by Month \n 4.View Expense by Category \n 5.Delete Expense \n 6.Edit Expense \n 7.View Report \n 8.Monthly Report \n 9.View Total Income \n 10.Set Total Budget \n 11.Set Budget by Category \n 12.Check Budget \n 13.Exit \n ";
     cout<<"Enter choice: ";
     cin>>choice;
     switch(choice){
@@ -440,10 +573,15 @@ int main(){
         break;
         case 8: r.monthlyReport();
         break;
-        case 9:
-        case 10:
-        case 11:
-        case 12: cout<<"Exiting...";
+        case 9: i.calculateTotalIncome();
+        break;
+        case 10: b.setTotalBudget();
+        break;
+        case 11: b.setBudgetByCategory();
+        break;
+        case 12: b.checkBudget();
+        break;
+        case 13: cout<<"Exiting...";
         break;
         default: cout<<"Invalid input";
         break;
@@ -457,5 +595,9 @@ int main(){
         default: cout<<"Invalid input";
         break;
     }
-    } while(choice!=2);
+    } while(ch!=2);
+    u.saveUsersToFile();
+    e.saveExpenseToFile();
+    i.saveIncomeToFile();
+    b.saveBudgetToFile();
 }
